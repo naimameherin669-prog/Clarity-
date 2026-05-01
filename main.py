@@ -80,9 +80,11 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('login'))
 
+with app.app_context():
+    db.create_all()
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    # Port 10000 is the standard for Render
-    app.run(host='0.0.0.0', port=10000)
+    # Use the port Render provides or default to 10000
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
