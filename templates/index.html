@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, sans-serif; padding: 0; margin: 0; }
+        .nav { display: flex; justify-content: space-around; padding: 20px 0; background: white; border-bottom: 1px solid #e5e5e7; position: sticky; top: 0; z-index: 100; }
+        .nav a { color: #1d4ed8; text-decoration: none; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .container { padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); margin-bottom: 20px; border: 1px solid #e5e5e7; text-align: center; }
+        .score-value { font-size: 5rem; color: #1d4ed8; font-weight: 800; margin: 10px 0; }
+        .log-card { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid; }
+        .pos { border-left-color: #34c759; color: #34c759; }
+        .neg { border-left-color: #ff3b30; color: #ff3b30; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="/">Dashboard</a>
+        <a href="/log" style="color:#34c759;">+ Log</a>
+        <a href="/vault">Vault</a>
+        <a href="/alarm">Alarm</a>
+        <a href="/logout">Exit</a>
+    </div>
+    <div class="container">
+        <div class="card">
+            <div style="color:#86868b; font-size: 0.8rem; font-weight: 600;">CURRENT CLARITY</div>
+            <div class="score-value">{{ user.score }}</div>
+        </div>
+        <h3 style="color:#1d1d1f; margin-left: 5px;">Timeline</h3>
+        {% for log in logs %}
+        <div class="log-card {{ 'pos' if log.impact > 0 else 'neg' }}">
+            <div style="text-align:left;">
+                <div style="color:#1d1d1f; font-weight: 600;">{{ log.activity }}</div>
+                <div style="color:#86868b; font-size:0.7rem;">{{ log.type }}</div>
+            </div>
+            <div style="font-weight: 800; font-size: 1.2rem;">{{ '+' if log.impact > 0 }}{{ log.impact }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
