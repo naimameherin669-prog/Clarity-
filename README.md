@@ -1,5 +1,4 @@
 
-
 # Clarity
 
 Flask Growth Tracker app.
@@ -8,8 +7,8 @@ Flask Growth Tracker app.
 pip install -r requirements.txt
 python app.py
 
-## Deploy on Github
-
-- Create Girhub static page
+## Deploy on Render
+- Push to GitHub
+- Create Render Web Service
 - Build: pip install -r requirements.txt
 - Start: gunicorn app:app
