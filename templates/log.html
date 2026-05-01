@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>Log Activity</h2>
+  <form method="post" class="form">
+    <label>Activity Name</label>
+    <input name="activity" placeholder="Studied physics" required>
+    <label>Impact Score (-10 to +10)</label>
+    <input name="impact" type="number" min="-10" max="10" value="1" required>
+    <button type="submit">Save Entry</button>
+  </form>
+</section>
+{% endblock %}
