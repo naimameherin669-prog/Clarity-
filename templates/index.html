@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity Dashboard</title>
+    <style>
+        body { background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, sans-serif; padding: 20px; margin: 0; }
+        .nav { display: flex; justify-content: space-around; padding: 20px 0; background: white; margin-bottom: 20px; border-bottom: 1px solid #e5e5e7; }
+        .nav a { color: #1d4ed8; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        .card { background: white; border-radius: 18px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e5e5e7; }
+        .score-label { text-align: center; color: #86868b; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; }
+        .score-value { font-size: 4rem; text-align: center; color: #1d4ed8; font-weight: 800; margin: 10px 0; }
+        .log-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f2; }
+        .impact-pos { color: #34c759; font-weight: bold; }
+        .impact-neg { color: #ff3b30; font-weight: bold; }
+        h3 { font-size: 1.2rem; margin-bottom: 15px; }
+    </style>
+</head><body>
+    <div class="nav">
+        <a href="/">DASHBOARD</a>
+        <a href="/vault">VAULT</a>
+        <a href="/logout">LOGOUT</a>
+    </div>
+    <div class="card">
+        <div class="score-label">Current Clarity</div>
+        <p class="score-value">{{ user.score }}</p>
+    </div>
+    <h3>Timeline</h3>
+    <div class="card">
+        {% for log in logs %}
+        <div class="log-item">
+            <div><strong>{{ log.activity }}</strong></div>
+            <div class="{{ 'impact-pos' if log.impact > 0 else 'impact-neg' }}">
+                {{ log.impact }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
