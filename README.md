@@ -1,15 +1,15 @@
+
+
 # Clarity
 
-A Flask Growth Tracker app with:
-- Dashboard
-- Activity logging
-- Webhook scoring
-- Media uploads
-- Study Vault
-- Alarms
-- Settings with AI engine selection
+Flask Growth Tracker app.
 
 ## Run locally
-```bash
 pip install -r requirements.txt
 python app.py
+
+## Deploy on Github
+
+- Create Girhub static page
+- Build: pip install -r requirements.txt
+- Start: gunicorn app:app
