@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero card">
+  <div>
+    <h1>Total Growth Score</h1>
+    <div class="big-score">{{ total_score }}</div>
+  </div>
+  <div class="hero-chip">Momentum dashboard</div>
+</section>
+
+<section class="card">
+  <h2>Activity History</h2>
+  <div class="history">
+    {% for item in logs %}
+      <div class="entry {{ 'growth' if item.kind == 'Growth' else 'downfall' }}">
+        <div class="entry-main">
+          <div class="entry-title">{{ item.activity }}</div>
+          <div class="entry-time">{{ item.time }}</div>
+        </div>
+        <div class="entry-score">{{ '+' if item.impact >= 0 else '' }}{{ item.impact }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
