@@ -1,4 +1,4 @@
 flask
-replit
-werkzeug
 gunicorn
+werkzeug
+replit
