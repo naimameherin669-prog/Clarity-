@@ -12,9 +12,6 @@ import jakarta.persistence.*
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.web.multipart.MultipartFile
-import java.io.File
-import java.nio.file.*
 
 @SpringBootApplication
 class ClarityApplication
@@ -26,7 +23,8 @@ class SecurityConfig {
     @Bean fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http.csrf { it.disable() }
             .authorizeHttpRequests {
-                it.requestMatchers("/signup", "/webhook", "/login", "/static/**").permitAll()
+                // Wide-open permissions for Auth and API
+                it.requestMatchers("/", "/signup", "/login", "/api/**", "/static/**").permitAll()
                 it.anyRequest().authenticated()
             }
             .formLogin { it.loginPage("/login").defaultSuccessUrl("/", true).permitAll() }
@@ -39,58 +37,53 @@ class SecurityConfig {
 class User(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long? = null,
     val username: String = "", val password: String = "", var score: Int = 0,
-    var alarmMsg: String = "Stop scrolling. Focus!", var water: Int = 0, var studySeconds: Long = 0
+    var alarmMsg: String = "The fog returns. Choose Clarity.", var water: Int = 0
 )
-
 interface UserRepo : JpaRepository<User, Long> { fun findByUsername(username: String): User? }
 
 @Controller
-class MasterController(val repo: UserRepo, val encoder: PasswordEncoder) {
-
-    @GetMapping("/")
-    fun home(model: Model): String {
-        // Find ANY user in the DB (usually just you)
-        val user = repo.findAll().firstOrNull() ?: return "redirect:/signup"
-        model.addAttribute("user", user)
+class WebController(val repo: UserRepo, val encoder: PasswordEncoder) {
+    @GetMapping("/") fun home(model: Model): String {
+        val u = repo.findAll().firstOrNull() ?: return "redirect:/signup"
+        model.addAttribute("user", u)
         return "index"
     }
-
-    @GetMapping("/signup") fun signupP() = "signup"
-    @GetMapping("/login") fun loginP() = "login"
-
-    @PostMapping("/signup")
-    fun signup(@RequestParam username: String, @RequestParam password: String): String {
+    @GetMapping("/signup") fun sP() = "signup"
+    @GetMapping("/login") fun lP() = "login"
+    @PostMapping("/signup") fun s(@RequestParam username: String, @RequestParam password: String): String {
         if (repo.findByUsername(username) == null) {
             repo.save(User(username = username, password = encoder.encode(password)))
         }
         return "redirect:/login"
     }
-    
-    // Feature Routes
-    @PostMapping("/water/add")
-    fun addWater(): String {
-        val u = repo.findAll().firstOrNull() ?: return "redirect:/signup"
-        u.water += 250; repo.save(u); return "redirect:/"
-    }
-
-    @PostMapping("/study/save")
-    fun saveStudy(@RequestParam seconds: Long): String {
-        val u = repo.findAll().firstOrNull() ?: return "redirect:/signup"
-        u.studySeconds += seconds; repo.save(u); return "redirect:/"
-    }
-    
-    @GetMapping("/recorder") fun recorder() = "recorder"
-    @GetMapping("/vault") fun vault() = "vault"
 }
 
+// --- THE NATURAL API (This is how you use the app independently) ---
 @RestController
-class API(val repo: UserRepo) {
+@RequestMapping("/api")
+class ClarityAPI(val repo: UserRepo) {
+
+    // 1. Natural Data Access (Open this in your browser to see your stats as JSON)
+    @GetMapping("/status")
+    fun getStatus(): Map<String, Any> {
+        val u = repo.findAll().firstOrNull() ?: return mapOf("error" to "No User")
+        return mapOf("score" to u.score, "water" to u.water, "identity" to u.username)
+    }
+
+    // 2. The Focus Webhook for MacroDroid
     @PostMapping("/webhook")
-    fun track(@RequestBody data: Map<String, String>): String {
-        val u = repo.findAll().firstOrNull() ?: return "No User Setup"
-        val distractions = listOf("Instagram", "TikTok", "Facebook", "Snapchat", "Cooking Madness")
-        val impact = if (data["app"] in distractions) -1 else 1
-        u.score += impact; repo.save(u)
-        return if (impact < 0) u.alarmMsg else "Maintain focus."
+    fun receiveHook(@RequestBody data: Map<String, String>): Map<String, String> {
+        val user = repo.findAll().firstOrNull() ?: return mapOf("msg" to "No User")
+        val app = data["app"] ?: "Unknown"
+        val badApps = listOf("Instagram", "TikTok", "Facebook", "Cooking Madness")
+        
+        if (app in badApps) {
+            user.score -= 1
+            repo.save(user)
+            return mapOf("response" to user.alarmMsg) // Returns your custom insult
+        }
+        user.score += 1
+        repo.save(user)
+        return mapOf("response" to "Focus Maintained.")
     }
 }
