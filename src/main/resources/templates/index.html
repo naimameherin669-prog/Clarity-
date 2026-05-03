@@ -1,19 +1,10 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clarity</title>
-    <style>
-        body { background: #f5f5f7; color: #1d1d1f; font-family: -apple-system, sans-serif; padding: 20px; margin: 0; }
-        .card { background: white; border-radius: 25px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e5e5e7; margin-top: 60px; }
-        .score { font-size: 6rem; color: #1d4ed8; font-weight: 800; margin: 10px 0; line-height: 1; }
-        .label { color: #86868b; font-weight: 600; letter-spacing: 2px; font-size: 0.8rem; text-transform: uppercase; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="label">Current Clarity</div>
-        <div class="score" th:text="${score}">0</div>
-    </div>
-</body>
-</html>
+<div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/vault">Study Vault</a>
+    <a href="/alarm">Alarm</a>
+    <a href="/logout">Logout</a>
+</div>
+<div class="card">
+    <div style="color:#86868b;font-weight:600;">CURRENT CLARITY</div>
+    <div style="font-size:6rem;color:#1d4ed8;font-weight:800;" th:text="${user.score}">0</div>
+</div>
