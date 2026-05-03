@@ -24,6 +24,29 @@ body { background:#f5f5f7; color:#1d1d1f; font-family:-apple-system,sans-serif; 
         <a href="/alarm">Alarm</a>
         <a href="/logout">Logout</a>
     </div>
+<script>
+    // 1. Install the "App" Capability
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+
+    // 2. Local Independent Water Reminder
+    function startWaterReminder() {
+        // Asks for permission to send pop-ups
+        Notification.requestPermission().then(perm => {
+            if (perm === 'granted') {
+                alert("Clarity Water Tracker Activated. Reminders every 2 hours.");
+                // This runs inside the browser independent of the server!
+                setInterval(() => {
+                    new Notification("🌊 Drink Water", {
+                        body: "Maintain Clarity. Drink 250ml now.",
+                        icon: "https://cdn-icons-png.flaticon.com/512/591/591564.png"
+                    });
+                }, 7200000); // 7200000 ms = 2 hours
+            }
+        });
+    }
+</script>
 
     <div class="container">
         <!-- SCORE -->
