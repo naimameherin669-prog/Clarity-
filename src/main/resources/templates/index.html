@@ -1,10 +1,49 @@
+<!-- Inside the <body> of index.html -->
 <div class="nav">
     <a href="/">Dashboard</a>
-    <a href="/vault">Study Vault</a>
-    <a href="/alarm">Alarm</a>
+    <a href="/recorder">4K Camera</a>
     <a href="/logout">Logout</a>
 </div>
-<div class="card">
-    <div style="color:#86868b;font-weight:600;">CURRENT CLARITY</div>
-    <div style="font-size:6rem;color:#1d4ed8;font-weight:800;" th:text="${user.score}">0</div>
+
+<div class="container">
+    <!-- Water Reminder Card -->
+    <div class="card" style="border-top: 4px solid #00aaff;">
+        <p class="label">WATER INTAKE</p>
+        <div style="font-size: 2rem; color: #00aaff;" th:text="${user.waterDrank + 'ml'}">0ml</div>
+        <form action="/water/add" method="POST">
+            <button type="submit" style="background:#00aaff; border:none; padding:10px; color:white; border-radius:10px; margin-top:10px; width: 100%;">DRANK 250ML</button>
+        </form>
+    </div>
+
+    <!-- Study Timer Card -->
+    <div class="card">
+        <p class="label">STUDY TRACKER</p>
+        <div id="displayTimer" style="font-size: 3rem; color: #1d1d1f; font-weight:bold;">00:00:00</div>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button onclick="startTimer()" id="startBtn" style="flex:1; background:#34c759; color:white; border:none; padding:10px; border-radius:10px;">START</button>
+            <button onclick="stopTimer()" id="stopBtn" style="flex:1; background:#ff3b30; color:white; border:none; padding:10px; border-radius:10px; display:none;">STOP</button>
+        </div>
+    </div>
 </div>
+
+<script>
+    let seconds = 0, timerInterval;
+    function startTimer() {
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'inline';
+        timerInterval = setInterval(() => {
+            seconds++;
+            let h = Math.floor(seconds/3600), m = Math.floor((seconds%3600)/60), s = seconds%60;
+            document.getElementById('displayTimer').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        }, 1000);
+    }
+    function stopTimer() {
+        clearInterval(timerInterval);
+        const form = document.createElement('form');
+        form.method = 'POST'; form.action = '/study/add';
+        const input = document.createElement('input');
+        input.name = 'seconds'; input.value = seconds;
+        form.appendChild(input); document.body.appendChild(form);
+        form.submit();
+    }
+</script>
