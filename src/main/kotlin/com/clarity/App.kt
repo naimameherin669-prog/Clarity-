@@ -13,6 +13,8 @@ import jakarta.servlet.http.HttpSession
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.web.multipart.MultipartFile
+import java.nio.file.*
 
 @SpringBootApplication
 class ClarityApplication
@@ -22,27 +24,33 @@ fun main(args: Array<String>) { runApplication<ClarityApplication>(*args) }
 class SecurityConfig {
     @Bean fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
     @Bean fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        // CSRF disabled so MacroDroid and local forms work instantly
-        http.csrf { it.disable() }.authorizeHttpRequests { it.anyRequest().permitAll() }
+        http.csrf { it.disable() }.headers { it.frameOptions { it.disable() } }
+            .authorizeHttpRequests {
+                it.requestMatchers("/", "/signup", "/login", "/api/**", "/static/**").permitAll()
+                it.anyRequest().authenticated()
+            }
+            .formLogin { it.disable() } // Using custom manual login to stop loops
         return http.build()
     }
 }
 
+// --- PERMANENT FEATURES DATA MODEL ---
 @Entity @Table(name="app_user")
 class User(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long? = null,
     var username: String = "", var password: String = "", var score: Int = 0,
-    var alarmMsg: String = "Break the loop. Choose Clarity.", var water: Int = 0
+    var water: Int = 0, var studySeconds: Long = 0, var alarmMsg: String = "Break the loop. Choose Clarity."
 )
-interface UserRepo : JpaRepository<User, Long> { fun findByUsername(username: String): User? }
+interface UserRepo : JpaRepository<User, Long> { fun findByUsername(u: String): User? }
 
 @Controller
 class MainController(val repo: UserRepo, val encoder: PasswordEncoder) {
 
+    // LOGS IN IMMEDIATELY IF ACCOUNT EXISTS
     @GetMapping("/")
     fun index(session: HttpSession, model: Model): String {
-        val userId = session.getAttribute("UID") as? Long ?: return "redirect:/login"
-        val user = repo.findById(userId).orElse(null) ?: return "redirect:/signup"
+        val uid = session.getAttribute("UID") as? Long ?: return "redirect:/login"
+        val user = repo.findById(uid).orElse(null) ?: return "redirect:/signup"
         model.addAttribute("user", user)
         return "index"
     }
@@ -60,12 +68,26 @@ class MainController(val repo: UserRepo, val encoder: PasswordEncoder) {
 
     @PostMapping("/login")
     fun login(@RequestParam username: String, @RequestParam password: String, session: HttpSession): String {
-        val user = repo.findByUsername(username)
-        if (user != null && encoder.matches(password, user.password)) {
-            session.setAttribute("UID", user.id)
+        val u = repo.findByUsername(username)
+        if (u != null && encoder.matches(password, u.password)) {
+            session.setAttribute("UID", u.id) // SUCCESSFUL LOGIN
             return "redirect:/"
         }
         return "redirect:/login?error"
+    }
+
+    @PostMapping("/water/add")
+    fun addWater(session: HttpSession): String {
+        val uid = session.getAttribute("UID") as? Long ?: return "redirect:/login"
+        val u = repo.findById(uid).get(); u.water += 250; repo.save(u)
+        return "redirect:/"
+    }
+
+    @PostMapping("/study/save")
+    fun saveStudy(@RequestParam seconds: Long, session: HttpSession): String {
+        val uid = session.getAttribute("UID") as? Long ?: return "redirect:/login"
+        val u = repo.findById(uid).get(); u.studySeconds += seconds; repo.save(u)
+        return "redirect:/"
     }
 
     @GetMapping("/logout") fun logout(session: HttpSession): String {
@@ -73,25 +95,23 @@ class MainController(val repo: UserRepo, val encoder: PasswordEncoder) {
         return "redirect:/login"
     }
 
-    @GetMapping("/vault") fun vault() = "vault"
+    // High-Res Feature Links
+    @GetMapping("/recorder") fun r() = "recorder"
+    @GetMapping("/vault") fun v(model: Model) = repo.findAll().firstOrNull().let { model.addAttribute("user", it); "vault" }
 }
 
 @RestController
 @RequestMapping("/api")
-class ClarityAPI(val repo: UserRepo) {
-    // NATURAL API Webhook
+class API(val repo: UserRepo) {
     @PostMapping("/webhook")
     fun track(@RequestBody data: Map<String, String>): String {
-        val u = repo.findAll().firstOrNull() ?: return "Sign up on web first!"
-        val bad = data["app"] in listOf("Instagram", "TikTok", "Facebook", "Cooking Madness")
-        u.score += if (bad) -1 else 1
+        val u = repo.findAll().firstOrNull() ?: return "Sign up via browser first"
+        val isBad = data["app"] in listOf("Instagram", "TikTok", "Facebook", "Snapchat", "Cooking Madness")
+        u.score += if (isBad) -1 else 1
         repo.save(u)
-        return if (bad) u.alarmMsg else "Clarity maintained."
+        return if (isBad) u.alarmMsg else "Clarity maintained."
     }
 
     @GetMapping("/status")
-    fun getStatus(): Map<String, Int> {
-        val u = repo.findAll().firstOrNull() ?: return mapOf()
-        return mapOf("score" to u.score, "water" to u.water)
-    }
+    fun stats() = repo.findAll().firstOrNull()?.let { mapOf("score" to it.score, "water" to it.water) } ?: mapOf("msg" to "No User")
 }
