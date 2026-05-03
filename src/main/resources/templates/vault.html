@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity | Vault</title>
+    <style>
+        body { background:#f5f5f7; color:#1d1d1f; font-family:sans-serif; margin:0; padding:20px; }
+        .header { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+        .card { background:white; border-radius:22px; padding:25px; box-shadow:0 8px 30px rgba(0,0,0,0.04); border:1px solid #e5e5e7; margin-bottom:20px; }
+        .label { color:#86868b; font-size:0.75rem; font-weight:700; letter-spacing:1px; margin-bottom:15px; display:block; }
+        input[type="file"] { border:1px dashed #ddd; width:100%; padding:30px; text-align:center; border-radius:15px; margin-bottom:15px; box-sizing:border-box; }
+        select, button { width:100%; padding:15px; border-radius:12px; border:1px solid #e5e5e7; font-weight:700; }
+        button { background:#1d4ed8; color:white; border:none; margin-top:15px; }
+        .blueprint { border-left:4px solid #1d4ed8; padding-left:15px; background:#f0f7ff; padding:20px; border-radius:12px; margin-top:20px; font-size:0.95rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" style="text-decoration:none; font-size:1.2rem; color:#1d4ed8;">←</a>
+        <h3 style="margin:0; font-weight:800; font-size:1.5rem;">INSIGHT VAULT</h3>
+    </div>
+
+    <div class="card">
+        <span class="label">UPLOAD STUDY MATERIAL (PDF/TXT)</span>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <span class="label">CHOOSE AI PROFESSOR</span>
+            <select name="engine">
+                <option value="Gemini">GEMINI (General Knowledge)</option>
+                <option value="Perplexity">PERPLEXITY (Internet Research)</option>
+                <option value="Gauth">GAUTH AI (Mathematical Genius)</option>
+                <option value="Kimi">KIMI (Large Doc Context)</option>
+                <option value="Studly">STUDLY (Flashcard Arch)</option>
+            </select>
+            <button type="submit">GENERATE BLUEPRINT</button>
+        </form>
+    </div>
+
+    <!-- AI Output appears here -->
+    <div class="card" th:if="${analysis}">
+        <span class="label">MEDIOCRE STUDENT BLUEPRINT</span>
+        <div class="blueprint" th:text="${analysis}">No data available yet. Upload a file.</div>
+    </div>
+
+</body>
+</html>
